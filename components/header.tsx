@@ -5,7 +5,7 @@ import { Layers, ChevronRight } from "lucide-react";
 
 export default function Header() {
   const scrollToDemo = () => {
-    window.open("https://demo.nabhya.tech", "_blank");
+    window.open("https://ieee-ndvi-frontend.vercel.app", "_blank");
   };
 
   return (
@@ -33,7 +33,7 @@ export default function Header() {
             IEEE Hackathon Winner 2026
           </span>
           <button 
-            onClick={scrollToDemo}
+            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             className="px-5 py-2 rounded-full bg-white hover:bg-white/90 text-black text-[13px] font-bold transition-all duration-200 shadow-md shadow-white/5 flex items-center gap-1.5"
           >
             Get Early Access
