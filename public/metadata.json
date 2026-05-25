@@ -1,0 +1,6 @@
+{
+  "name": "Nabhya",
+  "description": "Nabhya | The AI Infrastructure for Crops. Near-NDVI Without Costly Multispectral.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

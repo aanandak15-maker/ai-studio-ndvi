@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-@theme {
+@source "../app/**/*.{ts,tsx}";
+@source "../components/**/*.{ts,tsx}";
+
+:root {
   --color-brand-accent: #00DC82;
   --color-surface-1: rgba(255, 255, 255, 0.03);
   --color-surface-2: rgba(255, 255, 255, 0.05);
