@@ -1,45 +1,64 @@
 "use client";
 
 import React from "react";
-import { Layers, ChevronRight } from "lucide-react";
+
+/* NDVI diamond logo — conic-gradient per 1c wireframe */
+function NabhyaLogo() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div
+        style={{
+          width: 20,
+          height: 20,
+          background: "conic-gradient(#1B6B3A 0 25%, #F7C51E 25% 50%, #E03A2F 50% 75%, #8CC63F 75%)",
+          borderRadius: 4,
+          transform: "rotate(45deg)",
+          flexShrink: 0,
+        }}
+      />
+      <span className="text-[15px] font-black text-[#1a1a1a] tracking-tight uppercase">Nabhya</span>
+    </div>
+  );
+}
 
 export default function Header() {
-  const scrollToDemo = () => {
-    window.open("https://ieee-ndvi-frontend.vercel.app", "_blank");
+  const scrollToContact = () => {
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <header className="w-full sticky top-0 bg-[#030304]/80 backdrop-blur-md border-b border-white/5 z-40 transition-all duration-300">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div 
-          className="flex items-center gap-3 cursor-pointer" 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#00DC82] to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/10">
-            <Layers className="w-5 h-5 text-black" />
-          </div>
-          <span className="text-xl font-black text-white tracking-tight uppercase">Nabhya</span>
-        </div>
+    <header className="w-full sticky top-0 z-50 bg-[#F8F7F3]/95 backdrop-blur-sm border-b border-black/[0.06]">
+      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
+        {/* Logo */}
+        <NabhyaLogo />
 
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#impact" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">Impact</a>
-          <a href="#applications" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">Applications</a>
-          <a href="#how-it-works" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">How It Works</a>
-          <a href="#validation" className="text-sm font-semibold text-white/60 hover:text-white transition-colors">Validation</a>
+        {/* Nav */}
+        <nav className="hidden md:flex items-center gap-6">
+          {[
+            { label: "How It Works", href: "#how-it-works" },
+            { label: "Validation", href: "#validation" },
+            { label: "Applications", href: "#applications" },
+            { label: "Contact", href: "#contact" },
+          ].map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className="text-[12px] font-mono font-medium text-[#6f6d66] hover:text-[#1B6B3A] uppercase tracking-wider transition-colors"
+            >
+              {item.label}
+            </a>
+          ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00DC82]/10 border border-[#00DC82]/20 text-[11px] font-black uppercase text-[#00DC82] tracking-wider">
-            IEEE Hackathon Winner 2026
-          </span>
-          <button 
-            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-5 py-2 rounded-full bg-white hover:bg-white/90 text-black text-[13px] font-bold transition-all duration-200 shadow-md shadow-white/5 flex items-center gap-1.5"
-          >
-            Get Early Access
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Demo CTA */}
+        <a
+          href="https://www.nabhya.tech/demo.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 bg-[#1B6B3A] hover:bg-[#154f2c] text-white text-[11px] font-mono font-bold uppercase tracking-wider rounded transition-colors"
+        >
+          Try Demo
+        </a>
       </div>
     </header>
   );

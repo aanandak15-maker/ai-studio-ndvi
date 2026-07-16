@@ -4,8 +4,23 @@
 @source "../components/**/*.{ts,tsx}";
 
 :root {
-  --color-brand-accent: #00DC82;
-  --color-surface-1: rgba(255, 255, 255, 0.03);
-  --color-surface-2: rgba(255, 255, 255, 0.05);
-  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  /* 1c Split Field-Map — NDVI palette */
+  --color-page-bg: #F8F7F3;
+  --color-dark-panel: #12281a;
+  --color-primary: #1B6B3A;
+  --color-bright: #8CC63F;
+  --color-yellow: #F7C51E;
+  --color-stress: #E03A2F;
+  --color-text: #1a1a1a;
+  --color-muted: #6f6d66;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-warm-border: #e8e6e0;
+  --ndvi-gradient: linear-gradient(90deg, #E03A2F, #F7C51E, #8CC63F, #1B6B3A);
+  --logo-conic: conic-gradient(#1B6B3A 0 25%, #F7C51E 25% 50%, #E03A2F 50% 75%, #8CC63F 75%);
+
+  /* Legacy compat */
+  --color-brand-accent: #8CC63F;
+  --color-surface-1: rgba(0, 0, 0, 0.02);
+  --color-surface-2: rgba(0, 0, 0, 0.04);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
 }

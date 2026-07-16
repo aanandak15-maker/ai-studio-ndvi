@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- NDVI diamond logo — 4 coloured triangles representing the NDVI health scale -->
+  <polygon points="16,2 30,16 16,16" fill="#F7C51E"/>
+  <polygon points="30,16 16,30 16,16" fill="#E03A2F"/>
+  <polygon points="16,30 2,16 16,16"  fill="#8CC63F"/>
+  <polygon points="2,16 16,2 16,16"   fill="#1B6B3A"/>
+</svg>

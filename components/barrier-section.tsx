@@ -4,72 +4,83 @@ import React from "react";
 
 export default function BarrierSection() {
   return (
-    <section id="impact" className="w-full bg-[#070709] border-y border-white/5 py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(#15803d_0.8px,transparent_0.8px)] [background-size:24px_24px] opacity-10 pointer-events-none" />
-      
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
-        <div className="lg:col-span-6">
-          <span className="text-[11px] font-black uppercase text-red-500 tracking-widest block mb-4">The Barrier</span>
-          <div className="text-6xl sm:text-7xl md:text-8xl font-black text-white leading-none tracking-tight mb-6">
-            ₹12,00,000
-          </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-white mb-6 leading-snug max-w-md">
-            The cost of the camera required to generate NDVI crop health data from a drone.
-          </h3>
-          <div className="space-y-4 max-w-lg">
-            <div className="flex gap-3 items-start">
-              <div className="w-5 h-5 rounded bg-red-500/10 border border-red-500/20 flex items-center justify-center mt-1 shrink-0">
-                <span className="text-red-500 font-bold text-[10px]">✕</span>
-              </div>
-              <p className="text-white/50 text-[14px]">
-                <strong>1,400+ drone companies</strong> in India fly every day.
-              </p>
-            </div>
-            <div className="flex gap-3 items-start">
-              <div className="w-5 h-5 rounded bg-red-500/10 border border-red-500/20 flex items-center justify-center mt-1 shrink-0">
-                <span className="text-red-500 font-bold text-[10px]">✕</span>
-              </div>
-              <p className="text-white/50 text-[14px]">
-                <strong>Most never buy it.</strong>
-              </p>
-            </div>
-            <div className="flex gap-3 items-start">
-              <div className="w-5 h-5 rounded bg-red-500/10 border border-red-500/20 flex items-center justify-center mt-1 shrink-0">
-                <span className="text-red-500 font-bold text-[10px]">✕</span>
-              </div>
-              <p className="text-white/50 text-[14px]">
-                <strong>Most farms never get monitored.</strong>
-              </p>
-            </div>
-          </div>
-        </div>
+    <section className="w-full max-w-6xl mx-auto px-6 py-16 relative z-10">
 
-        <div className="lg:col-span-6 bg-white/[0.01] border border-white/5 rounded-[32px] p-8 md:p-10 relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#00DC82]/20 to-transparent" />
-          
-          <span className="text-[11px] font-black uppercase text-[#00DC82] tracking-widest block mb-6">Benchmarks</span>
-          <h4 className="text-2xl font-black text-white uppercase tracking-tight mb-8">Validated Performance</h4>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 border-b border-white/5 pb-8">
-            <div>
-              <div className="text-4xl font-black text-white tracking-tight mb-1">0.8060</div>
-              <span className="text-[11px] text-white/40 uppercase font-bold tracking-wider">SSIM Score</span>
-            </div>
-            <div>
-              <div className="text-4xl font-black text-white tracking-tight mb-1">92.6%</div>
-              <span className="text-[11px] text-white/40 uppercase font-bold tracking-wider">Visual Similarity</span>
-            </div>
-            <div>
-              <div className="text-4xl font-black text-[#00DC82] tracking-tight mb-1">+16.8%</div>
-              <span className="text-[11px] text-[#00DC82]/50 uppercase font-bold tracking-wider">Above Benchmark</span>
-            </div>
-          </div>
+      {/* ── Split: light problem stat + dark "what farms miss" panel ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5 items-stretch">
 
-          <p className="text-white/50 text-[13px] leading-relaxed">
-            💡 <strong>Nabhya breaks this hardware barrier.</strong> By processing standard high-resolution RGB images through our proprietary deep learning network, we reconstruct premium, near-multispectral crop health maps. The pipeline achieves <strong>92.6% spatial and index accuracy</strong> compared to physical multi-lakh sensors, outperforming traditional computer vision benchmarks by <strong>16.8%</strong>.
+        {/* Left — the barrier (light) */}
+        <div className="border border-black/[0.08] rounded-2xl p-8 bg-white/50">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#E03A2F] block mb-3">
+            The Barrier
+          </span>
+          <div className="text-[56px] font-black leading-none tracking-tight text-[#1a1a1a] mb-4">
+            ₹12L
+          </div>
+          <p className="text-[#6f6d66] text-[14px] leading-relaxed max-w-sm">
+            A multispectral camera costs ₹8–12 lakh. Most Indian drone operators — 1,400+ DGCA-certified — fly standard RGB sensors and generate zero crop health data per flight.
           </p>
         </div>
+
+        {/* Right — what farms miss (dark panel) */}
+        <div
+          className="rounded-2xl p-8 flex flex-col justify-between"
+          style={{ background: "#12281a" }}
+        >
+          <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#9db8a5] block mb-3">
+            What farms miss on every flight
+          </span>
+
+          <div className="space-y-3 flex-1">
+            {[
+              { label: "Stress detection", colour: "#E03A2F" },
+              { label: "Disease early warning", colour: "#F7C51E" },
+              { label: "Irrigation mapping", colour: "#8CC63F" },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-3">
+                <div
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: item.colour }}
+                />
+                <span className="font-mono text-[11px] text-[#cfe0d4] uppercase tracking-wider">
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <div className="text-[28px] font-black text-[#F7C51E] leading-none">
+              0
+            </div>
+            <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#9db8a5]">
+              NDVI maps generated per flight without Nabhya
+            </span>
+          </div>
+        </div>
       </div>
+
+      {/* ── Solution stat row ── */}
+      <div className="mt-5 grid grid-cols-3 gap-5">
+        {[
+          { stat: "0.8060", label: "SSIM Score", sub: "440 validation images", accent: "#1B6B3A" },
+          { stat: "92.6%", label: "Visual Similarity", sub: "vs. multispectral sensor", accent: "#1B6B3A" },
+          { stat: "+16.8%", label: "Above Benchmark", sub: "vs. published baseline", accent: "#8CC63F" },
+        ].map((s) => (
+          <div key={s.label} className="border border-black/[0.08] rounded-xl p-5 bg-white/50">
+            <div className="text-[28px] font-black leading-none" style={{ color: s.accent }}>
+              {s.stat}
+            </div>
+            <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#1a1a1a] mt-1">
+              {s.label}
+            </div>
+            <div className="font-mono text-[9px] text-[#6f6d66] mt-0.5 uppercase tracking-wider">
+              {s.sub}
+            </div>
+          </div>
+        ))}
+      </div>
+
     </section>
   );
 }
