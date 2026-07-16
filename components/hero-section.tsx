@@ -26,7 +26,7 @@ export default function HeroSection() {
 
             <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
               <a
-                href="https://www.nabhya.tech/demo.html"
+                href="/demo.html"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto text-center px-6 py-3 bg-[#1B6B3A] hover:bg-[#154f2c] text-white text-[12px] font-mono font-bold uppercase tracking-wider rounded transition-colors"

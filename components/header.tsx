@@ -52,7 +52,7 @@ export default function Header() {
 
         {/* Demo CTA */}
         <a
-          href="https://www.nabhya.tech/demo.html"
+          href="/demo.html"
           target="_blank"
           rel="noopener noreferrer"
           className="px-4 py-2 bg-[#1B6B3A] hover:bg-[#154f2c] text-white text-[11px] font-mono font-bold uppercase tracking-wider rounded transition-colors"

@@ -61,7 +61,7 @@ export default function BarrierSection() {
       </div>
 
       {/* ── Solution stat row ── */}
-      <div className="mt-5 grid grid-cols-3 gap-5">
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-5">
         {[
           { stat: "0.8060", label: "SSIM Score", sub: "440 validation images", accent: "#1B6B3A" },
           { stat: "92.6%", label: "Visual Similarity", sub: "vs. multispectral sensor", accent: "#1B6B3A" },
