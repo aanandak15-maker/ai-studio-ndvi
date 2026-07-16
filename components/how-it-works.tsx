@@ -28,11 +28,11 @@ export default function HowItWorks({ setActiveModal }: HowItWorksProps) {
           </span>
 
           {/* Horizontal 3-stop flow */}
-          <div className="mt-6 grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-center">
+          <div className="mt-6 flex flex-col md:grid md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-center">
             {/* Stop 1 — RGB image */}
             <button
               onClick={() => setActiveModal("rgb")}
-              className="group border border-[#3f5c4a] hover:border-[#8CC63F]/60 rounded-xl overflow-hidden transition-colors text-left"
+              className="group w-full border border-[#3f5c4a] hover:border-[#8CC63F]/60 rounded-xl overflow-hidden transition-colors text-left"
               style={{ background: "#1c3a28" }}
             >
               <div className="relative aspect-[4/3] overflow-hidden">
@@ -54,11 +54,11 @@ export default function HowItWorks({ setActiveModal }: HowItWorksProps) {
             </button>
 
             {/* Arrow */}
-            <span className="font-mono text-[#8CC63F] text-lg font-bold">→</span>
+            <span className="font-mono text-[#8CC63F] text-lg font-bold rotate-90 md:rotate-0 my-2 md:my-0">→</span>
 
             {/* Stop 2 — AI model */}
             <div
-              className="border border-[#3f5c4a] rounded-xl p-5 flex flex-col items-center justify-center text-center"
+              className="border border-[#3f5c4a] rounded-xl p-5 flex flex-col items-center justify-center text-center w-full"
               style={{ background: "#1c3a28", minHeight: 160 }}
             >
               <div className="w-10 h-10 rounded-xl border border-[#8CC63F]/30 flex items-center justify-center mb-3">
@@ -84,12 +84,12 @@ export default function HowItWorks({ setActiveModal }: HowItWorksProps) {
             </div>
 
             {/* Arrow */}
-            <span className="font-mono text-[#8CC63F] text-lg font-bold">→</span>
+            <span className="font-mono text-[#8CC63F] text-lg font-bold rotate-90 md:rotate-0 my-2 md:my-0">→</span>
 
             {/* Stop 3 — NDVI map */}
             <button
               onClick={() => setActiveModal("ndvi")}
-              className="group border border-[#8CC63F]/40 hover:border-[#8CC63F]/80 rounded-xl overflow-hidden transition-colors text-left"
+              className="group w-full border border-[#8CC63F]/40 hover:border-[#8CC63F]/80 rounded-xl overflow-hidden transition-colors text-left"
               style={{ background: "#1c3a28" }}
             >
               <div className="relative aspect-[4/3] overflow-hidden">

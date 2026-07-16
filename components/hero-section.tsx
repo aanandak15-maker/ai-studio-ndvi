@@ -15,27 +15,27 @@ export default function HeroSection() {
               NDVI without the ₹12L camera
             </span>
 
-            <h1 className="text-4xl sm:text-5xl font-black leading-[1.06] tracking-tight text-[#1a1a1a] uppercase mb-5">
-              NDVI Crop Health Maps<br />
-              <span className="text-[#1B6B3A]">From Your Standard Drone.</span>
+            <h1 className="text-[2.25rem] leading-none sm:text-4xl md:text-5xl font-black md:leading-[1.06] tracking-tight text-[#1a1a1a] uppercase mb-5">
+              NDVI Crop Health Maps<br className="hidden sm:block" />
+              <span className="text-[#1B6B3A]"> From Your Standard Drone.</span>
             </h1>
 
             <p className="text-[#6f6d66] text-[15px] leading-relaxed max-w-md mb-8">
               Nabhya reconstructs near-NDVI crop health maps from standard RGB drone footage — no multispectral sensor, no hardware changes.
             </p>
 
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
               <a
                 href="https://www.nabhya.tech/demo.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3 bg-[#1B6B3A] hover:bg-[#154f2c] text-white text-[12px] font-mono font-bold uppercase tracking-wider rounded transition-colors"
+                className="w-full sm:w-auto text-center px-6 py-3 bg-[#1B6B3A] hover:bg-[#154f2c] text-white text-[12px] font-mono font-bold uppercase tracking-wider rounded transition-colors"
               >
                 Try Free Demo
               </a>
               <a
                 href="#how-it-works"
-                className="px-6 py-3 border border-black/10 hover:border-[#1B6B3A]/40 text-[#6f6d66] hover:text-[#1B6B3A] text-[12px] font-mono font-bold uppercase tracking-wider rounded transition-colors"
+                className="w-full sm:w-auto text-center px-6 py-3 border border-black/10 hover:border-[#1B6B3A]/40 text-[#6f6d66] hover:text-[#1B6B3A] text-[12px] font-mono font-bold uppercase tracking-wider rounded transition-colors"
               >
                 How It Works
               </a>
@@ -93,7 +93,7 @@ export default function HeroSection() {
 
       {/* ── Ticker strip — credentials + stats ── */}
       <div className="w-full border-y border-black/[0.06] bg-white/60 mt-4 py-3 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center gap-x-6 gap-y-1">
+        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2">
           {[
             "1,400+ DGCA drone operators",
             "SSIM 0.8060 · 440 held-out images",
@@ -107,7 +107,7 @@ export default function HeroSection() {
                 {item}
               </span>
               {i < arr.length - 1 && (
-                <span className="text-black/20 font-mono text-[10px]">·</span>
+                <span className="hidden sm:inline text-black/20 font-mono text-[10px]">·</span>
               )}
             </React.Fragment>
           ))}

@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  output: "export",
+  output: process.env.VERCEL ? undefined : "export",
   // Allow access to remote image placeholder.
   images: {
     unoptimized: true,
