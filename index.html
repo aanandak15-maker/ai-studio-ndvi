@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nabhya — near-NDVI from RGB drone imagery</title>
+<meta name="description" content="Estimate NDVI-like crop vigour from ordinary RGB drone photographs. Free to try, no signup.">
+<style>
+  :root{
+    --ink:#12211a; --muted:#5c6b63; --faint:#8a978f;
+    --bg:#ffffff; --panel:#f6f8f6; --line:#e2e8e3;
+    --g-dark:#0d5c34; --g-light:#8cc63e; --amber:#ffc90b; --red:#e32b25;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px 96px}
+
+  header{display:flex;align-items:center;gap:14px;padding:26px 0 22px}
+  .logo{width:38px;height:38px;flex:none}
+  .brand{font-size:20px;font-weight:680;letter-spacing:-.3px}
+  .brand small{display:block;font-size:12.5px;font-weight:450;color:var(--muted);letter-spacing:0}
+  header .spacer{flex:1}
+  .pill{font-size:12px;padding:5px 11px;border-radius:999px;background:var(--panel);
+    border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+
+  .hero{padding:14px 0 26px;border-bottom:1px solid var(--line)}
+  h1{font-size:31px;line-height:1.25;margin:0 0 12px;font-weight:680;
+    letter-spacing:-.6px;max-width:20ch}
+  .lede{font-size:17px;color:var(--muted);max-width:62ch;margin:0}
+  .lede b{color:var(--ink);font-weight:600}
+  .facts{display:flex;gap:26px;flex-wrap:wrap;margin-top:20px}
+  .fact .n{font-size:21px;font-weight:680;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+  .fact .l{font-size:12.5px;color:var(--faint)}
+
+  h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.8px;
+    color:var(--faint);margin:0 0 14px;font-weight:650}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px;margin-top:22px}
+
+  .samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .samp{border:1px solid var(--line);border-radius:11px;overflow:hidden;cursor:pointer;
+    background:#fff;transition:.14s;text-align:left;padding:0;font:inherit;color:inherit}
+  .samp:hover{border-color:var(--g-light);transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(13,92,52,.09)}
+  .samp img{width:100%;height:104px;object-fit:cover;display:block}
+  .samp .t{padding:10px 12px 12px}
+  .samp .t b{display:block;font-size:13.5px;font-weight:620}
+  .samp .t span{font-size:12px;color:var(--faint)}
+
+  #drop{border:2px dashed #cfdad3;border-radius:12px;padding:30px 20px;text-align:center;
+    cursor:pointer;transition:.15s;background:#fff}
+  #drop:hover,#drop.over{border-color:var(--g-light);background:#fbfdfb}
+  #drop strong{display:block;font-size:16px;font-weight:620;margin-bottom:4px}
+  #drop span{color:var(--muted);font-size:13.5px}
+
+  .controls{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:18px}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:550}
+  input[type=text]{background:#fff;border:1px solid var(--line);color:var(--ink);
+    padding:10px 12px;border-radius:9px;font:15px ui-monospace,monospace;width:150px}
+  input[type=text]:focus{outline:none;border-color:var(--g-light);
+    box-shadow:0 0 0 3px rgba(140,198,62,.16)}
+  button{background:var(--g-dark);color:#fff;border:0;padding:12px 26px;border-radius:9px;
+    font-weight:620;font-size:15px;cursor:pointer;transition:.14s}
+  button:hover:not(:disabled){background:#0a4a2a}
+  button:disabled{opacity:.4;cursor:default}
+  .ghost{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .ghost button{background:#fff;color:var(--muted);font-weight:500;padding:5px 11px;
+    font-size:12px;border:1px solid var(--line)}
+  .ghost button:hover:not(:disabled){background:var(--panel);color:var(--ink);border-color:#cfdad3}
+  .hint{color:var(--faint);font-size:12.5px;margin-top:11px;line-height:1.55}
+
+  #aoiWrap{display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+  #aoiCanvas{max-width:100%;border:1px solid var(--line);border-radius:10px;
+    cursor:crosshair;display:block;background:#fff}
+
+  #status{display:none;margin-top:20px}
+  .bar{height:3px;background:#e6ece8;border-radius:2px;overflow:hidden}
+  .bar i{display:block;height:100%;width:32%;background:var(--g-light);
+    animation:sl 1.15s ease-in-out infinite}
+  @keyframes sl{0%{margin-left:-32%}100%{margin-left:100%}}
+
+  .err{border-left:3px solid var(--red);background:#fdf3f2;padding:16px 18px;
+    border-radius:0 10px 10px 0;margin-top:20px}
+  .err h3{margin:0 0 6px;font-size:14.5px;color:#b3211c;font-weight:640}
+  .err p{margin:0;color:#6b4340;font-size:14px}
+  .err .why{margin-top:11px;padding-top:11px;border-top:1px solid #f3ddda;
+    color:var(--muted);font-size:13px}
+
+  #out{display:none}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:11px;padding:15px}
+  .kpi .k{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;
+    margin-bottom:6px;font-weight:600}
+  .kpi .v{font-size:25px;font-weight:680;font-variant-numeric:tabular-nums;letter-spacing:-.6px}
+  .kpi .n{font-size:11.5px;color:var(--faint);margin-top:3px}
+  .lvl-high{color:var(--g-dark)} .lvl-medium{color:#b8890a} .lvl-low{color:var(--red)}
+
+  .panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px}
+  .pane img{cursor:zoom-in}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px;font-size:12.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .pane img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+  .pane .cap{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.45}
+  .pane .cap b{color:var(--ink);font-weight:620;display:block}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td{padding:8px 0;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:0}
+  td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+  .mut{color:var(--muted)}
+
+  .warn{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .warn:last-child{border-bottom:0}
+  .warn code{color:#96700a;background:#fff8e6;padding:2px 7px;border-radius:5px;
+    font-size:12px;white-space:nowrap;font-family:ui-monospace,monospace}
+  .warn span{color:var(--muted);font-size:13px}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:760px){.two{grid-template-columns:1fr} h1{font-size:26px}}
+  .guide h3{font-size:14px;margin:0 0 12px;font-weight:650}
+  .guide ul{margin:0;padding:0;list-style:none}
+  .guide li{font-size:14px;color:var(--muted);padding:7px 0 7px 24px;position:relative;line-height:1.5}
+  .guide li b{color:var(--ink);font-weight:600}
+  .do li:before{content:"";position:absolute;left:2px;top:14px;width:9px;height:5px;
+    border-left:2px solid var(--g-dark);border-bottom:2px solid var(--g-dark);transform:rotate(-45deg)}
+  .dont li:before{content:"\00d7";position:absolute;left:3px;top:6px;color:var(--red);
+    font-size:16px;font-weight:700;line-height:1.4}
+
+  .note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--g-light);
+    padding:15px 18px;border-radius:0 10px 10px 0;font-size:14px;color:var(--muted);
+    margin-top:16px;line-height:1.55}
+  .note b{color:var(--ink)}
+  .note:first-child{margin-top:0}
+
+  .summary{background:#fff;border:1px solid var(--line);border-left:4px solid var(--g-dark);
+    border-radius:0 12px 12px 0;padding:20px 24px}
+  .summary h3{margin:0 0 4px;font-size:17px;font-weight:660}
+  .summary .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+  .summary ol{margin:0;padding-left:20px}
+  .summary li{font-size:14.5px;padding:5px 0;color:var(--ink)}
+  .summary li span{color:var(--muted)}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .badge{font-size:12px;padding:5px 11px;border-radius:999px;font-weight:560;
+    border:1px solid transparent}
+  .b-warn{background:#fff8e6;color:#8a6508;border-color:#f0e0b0}
+  .b-ok{background:#eef7ec;color:#0d5c34;border-color:#cfe6ca}
+  .b-bad{background:#fdf3f2;color:#b3211c;border-color:#f3ddda}
+  .fix{background:#f4f9f3;border:1px solid #d9e9d5;border-radius:10px;padding:13px 16px;
+    margin-top:14px;font-size:13.5px;color:var(--muted)}
+  .fix b{color:var(--g-dark)}
+
+  details{margin-top:20px}
+  summary{cursor:pointer;color:var(--muted);font-size:13.5px;font-weight:550}
+  pre{background:#fbfcfb;border:1px solid var(--line);border-radius:10px;padding:15px;
+    overflow:auto;font-size:11.5px;max-height:400px;color:#3e4d45;line-height:1.5}
+
+  footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--faint);font-size:13px;line-height:1.7}
+  footer b{color:var(--muted)}
+  footer a{color:var(--g-dark)}
+
+  @media print {
+    .no-print { display: none !important; }
+    body { background: #fff; }
+    .wrap { padding: 10px 20px 0; max-width: 100%; margin: 0; }
+    .card { border: 1px solid #ddd; box-shadow: none; break-inside: avoid; padding: 20px; margin-top: 20px; border-radius: 8px; }
+    .pane { break-inside: avoid; margin-bottom: 20px; }
+    details { display: block; }
+    details > * { display: block !important; }
+    summary { pointer-events: none; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <svg class="logo" viewBox="0 0 100 100" aria-label="Nabhya">
+    <g transform="translate(50,50) rotate(45)">
+      <rect x="-36" y="-36" width="34" height="34" rx="9" fill="#0d5c34"/>
+      <rect x="2"  y="-36" width="34" height="34" rx="9" fill="#ffc90b"/>
+      <rect x="-36" y="2"  width="34" height="34" rx="9" fill="#8cc63e"/>
+      <rect x="2"  y="2"   width="34" height="34" rx="9" fill="#e32b25"/>
+    </g>
+  </svg>
+  <div class="brand">Nabhya
+    <small>near-NDVI from RGB drone imagery</small>
+  </div>
+  <span class="spacer"></span>
+  <span class="pill" id="mv">connecting…</span>
+</header>
+
+<div class="hero no-print">
+  <h1>Crop vigour from an ordinary drone photo.</h1>
+  <p class="lede">NDVI normally needs a multispectral sensor costing several lakh
+  rupees. Nabhya estimates an <b>NDVI-like vigour index from the RGB camera already
+  on your drone</b> — and tells you, honestly, how far to trust it.
+  <b>Free to try. No signup, no key.</b></p>
+  <div class="facts">
+    <div class="fact"><div class="n">Free</div><div class="l">no signup, no key</div></div>
+    <div class="fact"><div class="n">~4 s</div><div class="l">per image</div></div>
+    <div class="fact"><div class="n">Nothing stored</div><div class="l">processed in memory only</div></div>
+  </div>
+  <div style="margin-top:20px">
+    <a href="#developers" style="display:inline-flex;align-items:center;gap:8px;
+      background:#fff;border:1px solid var(--line);border-radius:9px;padding:11px 18px;
+      text-decoration:none;color:var(--ink);font-weight:600;font-size:14.5px">
+      For drone operators &amp; agritech platforms — the API →</a>
+  </div>
+</div>
+
+<div class="card no-print">
+  <h2>Start with an example</h2>
+  <div class="samples">
+    <button class="samp" data-f="bihar-mixed.jpg" data-g="0.047">
+      <img src="/samples/bihar-mixed.jpg" alt="Mixed smallholder plots">
+      <div class="t"><b>Mixed smallholder plots</b><span>Crop, bare soil, pond, buildings</span></div>
+    </button>
+    <button class="samp" data-f="bihar-sparse.jpg" data-g="0.047">
+      <img src="/samples/bihar-sparse.jpg" alt="Sparse crop on dry soil">
+      <div class="t"><b>Sparse crop, dry soil</b><span>Low canopy cover — a hard case</span></div>
+    </button>
+    <button class="samp" data-f="meadow-forest.jpg" data-g="0.020">
+      <img src="/samples/meadow-forest.jpg" alt="Grassland and tree line">
+      <div class="t"><b>Grassland &amp; tree line</b><span>Dense dark canopy beside open field</span></div>
+    </button>
+  </div>
+  <div class="hint">Real drone frames. Click one, then press Analyse — or use your
+  own below.</div>
+</div>
+
+<div class="card no-print">
+  <h2>Or use your own image</h2>
+  <div id="drop">
+    <strong>Drop a drone image here</strong>
+    <span>or click to choose — JPEG, PNG, TIFF, WebP · up to 25 MB and 40 megapixels</span>
+    <input type="file" id="file" accept="image/*" hidden>
+  </div>
+
+  <div class="controls">
+    <div>
+      <label for="drone">Your drone &amp; altitude</label>
+      <select id="drone">
+        <option value="">Select — or enter GSD directly</option>
+        <optgroup label="DJI">
+          <option value="0.0053">Mavic 3M / 3E — 20 m</option>
+          <option value="0.0079">Mavic 3M / 3E — 30 m</option>
+          <option value="0.0132">Mavic 3M / 3E — 50 m</option>
+          <option value="0.0055">Phantom 4 RTK — 20 m</option>
+          <option value="0.0082">Phantom 4 RTK — 30 m</option>
+          <option value="0.0137">Phantom 4 RTK — 50 m</option>
+          <option value="0.0070">Mini 4 Pro — 20 m</option>
+          <option value="0.0105">Mini 4 Pro — 30 m</option>
+          <option value="0.0086">Air 3 — 20 m</option>
+          <option value="0.0129">Air 3 — 30 m</option>
+          <option value="0.0090">Agras T40 / T50 — 20 m</option>
+        </optgroup>
+        <optgroup label="Other">
+          <option value="0.0075">Autel EVO II — 20 m</option>
+          <option value="0.0112">Autel EVO II — 30 m</option>
+          <option value="0.0100">Generic 1/2.3&Prime; sensor — 25 m</option>
+        </optgroup>
+      </select>
+      <input type="text" id="gsd" placeholder="0.012" value="0.012"
+             style="margin-top:8px;width:100%">
+      <div class="hint" style="margin-top:6px">Ground sample distance, m/px</div>
+    </div>
+    <div>
+      <label for="crop">Crop (optional)</label>
+      <input type="text" id="crop" placeholder="rice (validated)">
+    </div>
+    <button id="go" disabled>Analyse</button>
+  </div>
+
+  <div class="hint">
+    Ground sample distance is how many metres of ground one pixel covers —
+    roughly <code>altitude &times; sensor pitch &divide; focal length</code>. A
+    DJI-class 1/2.3&Prime; camera at 20&nbsp;m is about 0.008. Without it we cannot
+    confirm your image sits inside the resolution range the model was validated
+    on, and the result is flagged accordingly.
+  </div>
+
+  <div id="aoiWrap">
+    <h2 style="margin-bottom:8px">Field boundary — recommended</h2>
+    <div class="hint" style="margin:0 0 12px">
+      Click points around your field, then <b>Close boundary</b>. Everything
+      outside stops counting. <b>This is the only reliable way to exclude a
+      pond</b> — muddy water and wet soil are almost the same colour, so no
+      automatic rule separates them. Without a boundary, neighbouring plots, roads
+      and water enter your field's numbers.
+    </div>
+    <canvas id="aoiCanvas"></canvas>
+    <div class="ghost" style="margin-top:10px">
+      <button id="aoiClose">Close boundary</button>
+      <button id="aoiUndo">Undo point</button>
+      <button id="aoiClear">Clear</button>
+      <span class="hint" id="aoiInfo" style="margin:0 0 0 6px;align-self:center"></span>
+    </div>
+  </div>
+
+  <div id="status">
+    <div class="bar"><i></i></div>
+    <div class="hint" id="statusTxt"></div>
+  </div>
+</div>
+
+<div id="errBox"></div>
+
+<div id="out">
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <h2 style="margin:0;">Result</h2>
+      <button id="printBtn" class="no-print" style="padding:6px 12px; font-size:13px; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:6px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Save as PDF
+      </button>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="kpis" id="kpis" style="margin-top:20px"></div>
+  </div>
+  <div class="card">
+    <h2>What the model saw</h2>
+    <div class="legend">
+      <span><i style="background:#0d5c34"></i>higher vigour / counted as canopy</span>
+      <span><i style="background:#ffc90b"></i>middle</span>
+      <span><i style="background:#e32b25"></i>lower vigour / worst zones</span>
+      <span><i style="background:#c026d3"></i>excluded from the statistics</span>
+    </div>
+    <div class="panels" id="panels"></div>
+    <div class="hint">Colours are relative <b>within this image</b>, not absolute
+    NDVI values. Click any panel to enlarge.</div>
+  </div>
+  <div id="zoneBox"></div>
+  <details class="card">
+    <summary style="font-size:12.5px;text-transform:uppercase;letter-spacing:.8px;
+      color:var(--faint);font-weight:650">Technical detail — pixel accounting, agreement, warnings</summary>
+    <div class="two" style="margin-top:18px">
+    <div>
+      <h2>Pixel accounting</h2>
+      <table id="cov"></table>
+      <div class="hint" id="denomNote"></div>
+      <div id="agree"></div>
+    </div>
+    <div>
+      <h2>Confidence &amp; warnings</h2>
+      <div id="warns"></div>
+    </div>
+    </div>
+  </details>
+  <details class="no-print">
+    <summary>Full JSON response</summary>
+    <pre id="json"></pre>
+  </details>
+</div>
+
+
+
+<div class="card no-print" id="developers">
+  <h2>For drone operators &amp; agritech platforms</h2>
+  <div class="two">
+    <div>
+      <p style="margin:0 0 14px;font-size:15px;color:var(--muted)">
+      One HTTP call per image. No SDK, no model to host, no GPU. Returns the
+      vigour map, canopy cover, management zones and a full coverage audit as
+      JSON.</p>
+      <pre style="max-height:none;margin:0">curl -X POST https://nabhya-api-5mpnb7wq4q-el.a.run.app/v1/ndvi \
+  -H "X-API-Key: YOUR_KEY" \
+  -F "image=@field.jpg" \
+  -F "gsd_m_per_px=0.008" \
+  -F 'aoi_polygon=[[0.1,0.2],[0.8,0.2],[0.8,0.9],[0.1,0.9]]'</pre>
+    </div>
+    <div>
+      <table>
+        <tr><td>Input formats</td><td>JPEG · PNG · TIFF · WebP</td></tr>
+        <tr><td>Max size</td><td>25 MB / 40 megapixels</td></tr>
+        <tr><td>Latency</td><td>~4 s at 16 megapixels</td></tr>
+        <tr><td>Field boundary</td><td>polygon, per request</td></tr>
+        <tr><td>Auth</td><td>API key header</td></tr>
+        <tr><td>Storage</td><td>none — nothing retained</td></tr>
+      </table>
+      <div class="fix" style="margin-top:16px"><b>Not yet available:</b> batch
+      upload, saved field boundaries, webhooks, white-label reports. All planned —
+      tell us which you need first and it moves up the list.</div>
+    </div>
+  </div>
+  <div class="hint">Expand the JSON under any result to see exactly what you would
+  receive. Free during beta — get in touch for a key.</div>
+</div>
+
+<div class="card no-print">
+  <h2>If you do one thing</h2>
+  <p style="margin:0;color:var(--muted);font-size:15px;line-height:1.6">
+    <b>Best next step:</b> draw a field boundary before re-running — it's the single biggest accuracy improvement available to you right now.
+  </p>
+</div>
+
+<footer class="no-print">
+  <b>Free to use.</b> A few analyses per hour per network, no signup required.
+  Images are processed in memory and <b>never stored</b> — close the tab and
+  nothing remains. For higher limits or programmatic access, get in touch about an
+  API key.<br><br>
+  <b>near-NDVI</b> is an NDVI-<i>like</i> index estimated from RGB. It is not a
+  calibrated physical NDVI measurement. Compare within one image, or across
+  flights of the same field — never against published NDVI thresholds.<br><br>
+  © Nabhya · <a href="/api">service details</a> · <a href="/health">status</a>
+</footer>
+</div>
+
+<script>
+const WHY = {
+  gsd_unknown:"No ground sample distance given, so we could not confirm the image is inside the model's validated resolution range.",
+  gsd_out_of_validated_range:"Resolution is outside the range the model was validated on. Treat the result as indicative only.",
+  no_aoi_supplied:"No field boundary drawn, so the statistics cover the whole frame — including anything around your field.",
+  nodata_present:"Some pixels carry no data, usually frame edges or gaps in the flight footprint.",
+  built_surface_detected:"Part of the frame is bright non-vegetation — rooftops, concrete, or sun-bleached bare earth. Excluded from the statistics.",
+  heavy_shadow:"Over 15% of the frame is shadow, which reduces how much could be measured.",
+  low_coverage:"Under 60% of the frame was analysable, so the statistics rest on a thin sample.",
+  flooded_field_detected:"Substantial standing water. In a transplanted paddy this is normal and healthy, not stress.",
+  model_index_disagreement:"Two independent estimators rank these pixels differently. Treat the result with caution.",
+  low_canopy_cover:"Very little vegetation found, so within-canopy figures rest on few pixels.",
+  canopy_mask_fallback:"The canopy mask fell back to a simpler method because the model output was unusable here.",
+  canopy_method_disagreement:"The model's canopy mask and a standard index disagree. Canopy cover is sensitive to which definition you accept — see the second opinion.",
+  canopy_method_disagreement_severe:"The two canopy methods disagree more than on any frame we have measured. Treat canopy cover and zones as unreliable here.",
+  output_resolution_reduced:"Large image; the output map is coarser than the input. Normal for field-scale work.",
+  tile_edge_data_loss:"Some pixels at the frame edge were not analysed.",
+  saturated_pixels:"Some pixels are blown out and carry no recoverable signal.",
+  extreme_aspect_ratio:"Unusually elongated image; results may be less reliable."
+};
+const PANELS = [
+  ["rgb","Your image","as uploaded"],
+  ["ndvi","Vigour map","green = higher, red = lower, within this image"],
+  ["canopy","Canopy","green = counted as vegetation"],
+  ["excluded","Excluded","magenta = left out of the statistics"],
+  ["zones","Management zones","red = worst 10% · yellow = middle · green = best 10%"]
+];
+const $ = s => document.querySelector(s);
+let file=null, poly=[], polyClosed=false, aoiImg=null;
+const cvs=$("#aoiCanvas"), ctx=cvs.getContext("2d");
+const fmt = v => (v==null||Number.isNaN(v)) ? "—" : (+v).toFixed(4);
+const esc = s => String(s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+
+fetch("/health").then(r=>r.json())
+  .then(h=>{ $("#mv").textContent = h.model_version ? "model "+h.model_version : "ready"; })
+  .catch(()=>{ $("#mv").textContent = "service unavailable"; });
+
+document.querySelectorAll(".samp").forEach(b=>{
+  b.onclick = async () => {
+    $("#gsd").value = b.dataset.g;
+    const res = await fetch("/samples/"+b.dataset.f);
+    pick(new File([await res.blob()], b.dataset.f, {type:"image/jpeg"}));
+    $("#drop").scrollIntoView({behavior:"smooth", block:"center"});
+  };
+});
+
+const drop=$("#drop");
+drop.onclick = () => $("#file").click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over");
+  if (e.dataTransfer.files[0]) pick(e.dataTransfer.files[0]); };
+$("#file").onchange = e => { if (e.target.files[0]) pick(e.target.files[0]); };
+const dsel = document.getElementById("drone");
+if (dsel) dsel.onchange = () => { if (dsel.value) $("#gsd").value = dsel.value; };
+document.querySelectorAll(".pane img").forEach(()=>{});
+
+function drawAoi(){
+  if (!aoiImg) return;
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  ctx.drawImage(aoiImg,0,0,cvs.width,cvs.height);
+  if (poly.length){
+    ctx.beginPath();
+    poly.forEach(([x,y],i)=>{ const px=x*cvs.width, py=y*cvs.height;
+      i ? ctx.lineTo(px,py) : ctx.moveTo(px,py); });
+    if (polyClosed) ctx.closePath();
+    ctx.strokeStyle="#0d5c34"; ctx.lineWidth=2.5; ctx.stroke();
+    if (polyClosed){ ctx.fillStyle="rgba(140,198,62,.24)"; ctx.fill(); }
+    poly.forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*cvs.width,y*cvs.height,4.5,0,7);
+      ctx.fillStyle="#0d5c34"; ctx.fill();
+      ctx.strokeStyle="#fff"; ctx.lineWidth=1.5; ctx.stroke(); });
+  }
+  $("#aoiInfo").textContent = poly.length
+    ? poly.length+" point"+(poly.length>1?"s":"")+(polyClosed?" · boundary will be applied":" · press Close boundary when done")
+    : "no boundary — the whole frame will be analysed";
+}
+cvs.onclick = e => { if (polyClosed) return;
+  const r = cvs.getBoundingClientRect();
+  poly.push([(e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height]); drawAoi(); };
+$("#aoiClose").onclick = () => { if (poly.length<3){
+    $("#aoiInfo").textContent="a boundary needs at least 3 points"; return; }
+  polyClosed=true; drawAoi(); };
+$("#aoiUndo").onclick = () => { poly.pop(); polyClosed=false; drawAoi(); };
+$("#aoiClear").onclick = () => { poly=[]; polyClosed=false; drawAoi(); };
+
+function pick(f){
+  file=f;
+  drop.innerHTML = "<strong>"+esc(f.name)+"</strong><span>"+(f.size/1048576).toFixed(1)+" MB — click to change</span>";
+  $("#go").disabled=false; poly=[]; polyClosed=false;
+  const url=URL.createObjectURL(f), im=new Image();
+  im.onload = () => { aoiImg=im;
+    const s=Math.min(1,720/im.width);
+    cvs.width=Math.round(im.width*s); cvs.height=Math.round(im.height*s);
+    $("#aoiWrap").style.display="block"; drawAoi(); URL.revokeObjectURL(url); };
+  im.src=url;
+}
+
+$("#go").onclick = async () => {
+  if (!file) return;
+  $("#go").disabled=true; $("#out").style.display="none"; $("#errBox").innerHTML="";
+  $("#status").style.display="block";
+  $("#statusTxt").textContent="Analysing. A large frame takes a few seconds — the first request after a quiet period takes longer while the model loads.";
+
+  const fd=new FormData();
+  fd.append("image", file);
+  fd.append("gsd_m_per_px", $("#gsd").value.trim());
+  fd.append("crop", $("#crop").value.trim());
+  if (polyClosed && poly.length>=3) fd.append("aoi_polygon", JSON.stringify(poly));
+
+  try {
+    const r = await fetch("/v1/demo/ndvi", { method:"POST", body: fd });
+    const j = await r.json();
+    if (!r.ok) { showErr(r.status, j.detail||{}); return; }
+    render(j);
+  } catch (e) {
+    showErr(0,{error:"network_error",
+      message:"Could not reach the service. Check your connection and try again."});
+  } finally {
+    $("#status").style.display="none"; $("#go").disabled=false;
+  }
+};
+
+function showErr(code,d){
+  const why = {
+    413:"There are two separate size limits — 25 MB and 40 megapixels. A small file from a high-resolution sensor can pass one and fail the other.",
+    422:"The service refused rather than return a number it could not support. That refusal is deliberate.",
+    429:"The free tier is rate limited per network so it stays available to everyone.",
+    500:"No partial or substituted result is returned — a failed measurement is never replaced with a plausible-looking one.",
+    400:"The request could not be read."
+  }[code] || "";
+  $("#errBox").innerHTML = '<div class="err"><h3>Not analysed — '+
+    esc((d.error||"error").replace(/_/g," "))+'</h3><p>'+
+    esc(d.message||"Something went wrong.")+'</p>'+
+    (why?'<div class="why">'+why+'</div>':'')+'</div>';
+  $("#errBox").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+const ZONE_COPY = {
+  worst_label: "Worst zones",
+  worst_sub: "inspect these first",
+  worst_prose: "These zones rank lowest for vigour within this field — the strongest single use of this result.",
+  middle_label: "Middle",
+  middle_sub: "routine monitoring",
+  best_label: "Best 10%",
+  best_sub: "highest relative vigour"
+};
+
+function getCanopyAgreementBand(ag) {
+  if (!ag || ag.model_pct_of_valid == null || ag.exg_pct_of_valid == null) return null;
+  const diff_pp = Math.abs(ag.model_pct_of_valid - ag.exg_pct_of_valid);
+  if (diff_pp < 10) return { label: "Agreement good", diff_pp, cls: "lvl-high" };
+  if (diff_pp <= 20) return { label: "Moderate disagreement", diff_pp, cls: "lvl-medium" };
+  if (diff_pp <= 30) return { label: "High disagreement", diff_pp, cls: "lvl-warn" };
+  return { label: "Canopy result unreliable", diff_pp, cls: "lvl-low" };
+}
+
+function buildSummary(j){
+  // Every statement below is derived from a value the API returned. There is no
+  // composite "health score" here on purpose: no such number was measured, and
+  // inventing one to fill a dashboard is exactly the failure this product
+  // exists to avoid.
+  const st=j.within_field_stress||{}, ca=j.canopy||{}, cv=j.coverage||{},
+        cf=j.confidence||{}, w=j.warnings||[], z=st.zones||{}, prov=j.provenance||{};
+  const ex=cv.excluded||{}, acts=[], why=[];
+
+  const agBand = getCanopyAgreementBand(ca.agreement);
+  if (agBand && agBand.diff_pp > 30) {
+    acts.push(`<b>Canopy result unreliable.</b> <span>Model and standard index differ by ${agBand.diff_pp.toFixed(1)} percentage points. Treat canopy cover and zone boundaries with reduced confidence.</span>`);
+  }
+
+  if (z.stress_pct!=null)
+    acts.push(`<b>Scout the worst ${z.stress_pct}% first.</b> <span>${ZONE_COPY.worst_prose}</span>`);
+  if (ca.cover_pct!=null)
+    acts.push(`<b>Canopy cover is ${ca.cover_pct}% of field area.</b> <span>${
+      ca.cover_pct < 20 ? "Low — expect thin or early-stage crop, or a lot of bare ground."
+      : ca.cover_pct < 50 ? "Moderate for an establishing or row crop."
+      : "Substantial canopy across the field."}</span>`);
+  const top = Object.entries(ex).sort((a,b)=>b[1]-a[1])[0];
+  if (top && top[1] > 8)
+    acts.push(`<b>${top[1]}% excluded as ${top[0].replace(/_/g," ")}.</b>
+      <span>Not counted in any figure above. Check the panels to confirm that is
+      what you expect.</span>`);
+  if (!j.aoi_applied)
+    acts.push(`<b>Draw a field boundary and re-run.</b> <span>Right now every
+      number covers the whole frame — neighbouring plots, roads and water
+      included.</span>`);
+
+  if (w.includes("gsd_unknown")) why.push("no ground sample distance was given");
+  if (w.includes("gsd_out_of_validated_range")) why.push("resolution is outside 0.004–0.02 m/px — fly at 12–20 m for validated accuracy");
+  if (w.includes("no_aoi_supplied")) why.push("no field boundary was drawn");
+  if (w.includes("heavy_shadow")) why.push("heavy shadow — re-fly closer to solar noon");
+  if (w.includes("low_coverage")) why.push("under 60% of the frame was analysable");
+  if (w.includes("model_index_disagreement")) why.push("two independent estimators disagree on these pixels");
+  if (w.includes("canopy_method_disagreement") || (agBand && agBand.diff_pp > 10)) why.push("canopy cover is sensitive to which definition you accept");
+  if (w.includes("built_surface_detected")) why.push("a meaningful share of the frame is bright non-vegetation");
+  if (w.includes("unconfirmed_provenance") || (prov.drone_metadata_found === false)) why.push("image has no drone EXIF metadata");
+
+  const lvl=(cf.level||"").toLowerCase();
+  const badge = lvl==="high" ? "b-ok" : lvl==="low" ? "b-bad" : "b-warn";
+
+  return `<h3>What to do with this</h3>
+    <div class="sub">Derived from this image only. Nabhya screens — it does not diagnose.</div>
+    <ol>${acts.map(a=>"<li>"+a+"</li>").join("")}</ol>
+    <div class="badges">
+      <span class="badge ${badge}">Confidence ${(cf.level||"—").toUpperCase()}</span>
+      ${cf.in_validated_domain?'<span class="badge b-ok">GSD within tested range</span>'
+                             :'<span class="badge b-warn">GSD outside tested range</span>'}
+      ${(prov.drone_metadata_found === false || w.includes("unconfirmed_provenance")) ? '<span class="badge b-warn">Image provenance: unconfirmed (no drone metadata detected)</span>' : ''}
+      ${w.filter(x=>x!=="nodata_present" && x!=="unconfirmed_provenance").slice(0,3).map(x=>
+        '<span class="badge b-warn">'+x.replace(/_/g," ")+'</span>').join("")}
+    </div>
+    ${why.length ? '<div class="fix"><b>Why not higher, and how to improve it:</b> '+
+       why.join("; ")+'.</div>' : ''}`;
+}
+
+function render(j){
+  const nd=j.ndvi||{}, ca=j.canopy||{}, st=j.within_field_stress||{},
+        cv2=j.coverage||{}, cf=j.confidence||{}, pr=j.processing||{},
+        prov=j.provenance||{};
+  const kpi=(k,v,n,cls)=>'<div class="kpi"><div class="k">'+k+'</div><div class="v '+
+    (cls||"")+'">'+v+'</div><div class="n">'+(n||"")+'</div></div>';
+
+  $("#summary").innerHTML = buildSummary(j);
+
+  const fieldCoverStr = cv2.coverage_pct!=null ? cv2.coverage_pct+"%" : (ca.cover_pct!=null ? ca.cover_pct+"%" : "—");
+  const fieldPxDetail = (cv2.pixels_analysed!=null && cv2.pixels_field!=null)
+    ? (cv2.pixels_analysed).toLocaleString() + " of " + (cv2.pixels_field).toLocaleString() + " field-area px"
+    : "share of field area";
+
+  $("#kpis").innerHTML =
+    kpi("Vigour (mean)", fmt(nd.mean), "range "+fmt(nd.p10)+" – "+fmt(nd.p90)) +
+    kpi("Canopy cover", ca.cover_pct!=null?ca.cover_pct+"%":"—", "share of field area") +
+    kpi(ZONE_COPY.worst_label, st.zones&&st.zones.stress_pct!=null?st.zones.stress_pct+"%":"—",
+        ZONE_COPY.worst_sub,"lvl-low") +
+    kpi("Confidence",(cf.level||"—").toUpperCase(),
+        cf.in_validated_domain?"GSD within tested range":"GSD outside tested range",
+        "lvl-"+(cf.level||"")) +
+    kpi("Field coverage analysed", fieldCoverStr, fieldPxDetail) +
+    kpi("Time", pr.elapsed_seconds!=null?pr.elapsed_seconds+"s":"—",
+        (pr.megapixels||"?")+" megapixels");
+
+  $("#panels").innerHTML = PANELS.filter(p=>j.panels&&j.panels[p[0]])
+    .map(p=>'<div class="pane"><img src="'+j.panels[p[0]]+'" alt="'+p[1]+'">'+
+            '<div class="cap"><b>'+p[1]+'</b>'+p[2]+'</div></div>').join("");
+
+  const z = st.zones && st.zones.stress_pct!=null ? st.zones : null;
+  $("#zoneBox").innerHTML = !z ? "" :
+    '<div class="card"><h2>Zone breakdown</h2><div class="kpis">'+
+    kpi(ZONE_COPY.middle_label, z.moderate_pct+"%", ZONE_COPY.middle_sub)+
+    kpi(ZONE_COPY.best_label, z.healthy_pct+"%", ZONE_COPY.best_sub,"lvl-high")+
+    '</div><div class="hint">Zones are percentiles <b>within this field</b>, not '+
+    'absolute thresholds — the index is ordinal, so a fixed cutoff would be '+
+    'meaningless. Only canopy is zoned; bare soil is not.'+
+    (j.aoi_applied?"":"<br><b>No boundary was drawn</b>, so these zones cover the whole frame.")+
+    '</div></div>';
+
+  const ex = cv2.excluded||{};
+  const analysedFieldStr = (cv2.pixels_analysed!=null && cv2.pixels_field!=null)
+    ? (cv2.pixels_analysed).toLocaleString() + " of " + (cv2.pixels_field).toLocaleString() + " field-area px"
+    : (cv2.pixels_field||0).toLocaleString()+" px";
+
+  $("#cov").innerHTML =
+    "<tr><td>Field coverage analysed</td><td><b>"+(cv2.coverage_pct!=null?cv2.coverage_pct+"%":"—")+"</b> ("+analysedFieldStr+")</td></tr>"+
+    "<tr><td>Total pixels submitted</td><td>"+(cv2.pixels_submitted||0).toLocaleString()+" px</td></tr>"+
+    "<tr><td>Analysed pixels</td><td>"+(cv2.pixels_analysed||0).toLocaleString()+" px</td></tr>"+
+    Object.entries(ex).sort((a,b)=>b[1]-a[1])
+      .map(e=>'<tr><td class="mut">− '+esc(e[0].replace(/_/g," "))+"</td><td>"+e[1]+"%</td></tr>").join("");
+  $("#denomNote").textContent = ca.denominator_note || "";
+
+  const ag = ca.agreement;
+  const agBand = getCanopyAgreementBand(ag);
+  $("#agree").innerHTML = !ag ? "" :
+    '<h2 style="margin-top:24px">Canopy — second opinion</h2><table>'+
+    (agBand ? '<tr><td>Status</td><td class="'+agBand.cls+'"><b>'+agBand.label+'</b> ('+agBand.diff_pp.toFixed(1)+' pp gap)</td></tr>' : '')+
+    '<tr><td>Jaccard agreement</td><td class="'+(ag.jaccard<0.4?"lvl-low":ag.jaccard<0.6?"lvl-medium":"lvl-high")+'">'+ag.jaccard+'</td></tr>'+
+    '<tr><td class="mut">This model</td><td>'+ag.model_pct_of_valid+'%</td></tr>'+
+    '<tr><td class="mut">Standard index</td><td>'+ag.exg_pct_of_valid+'%</td></tr></table>'+
+    '<div class="hint">Neither is ground truth. We publish the disagreement rather '+
+    'than pick a side and stay quiet about it.</div>';
+
+  const ws = j.warnings||[];
+  $("#warns").innerHTML =
+    '<h3 style="margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:0.05em">This Image — Evaluation</h3>'+
+    '<table><tr><td>Confidence</td><td class="lvl-'+(cf.level||"")+'">'+
+    (cf.level||"—").toUpperCase()+'</td></tr>'+
+    '<tr><td class="mut">GSD status</td><td>'+(cf.in_validated_domain?"Within tested range (12–20 m AGL)":"Outside tested range")+'</td></tr>'+
+    '<tr><td class="mut">Boundary</td><td>'+(j.aoi_applied?"Field boundary applied":"Full frame (no boundary drawn)")+'</td></tr>'+
+    '<tr><td class="mut">Provenance</td><td>'+(prov.drone_metadata_found ? "Drone EXIF confirmed" : "Unconfirmed (no drone metadata detected)")+'</td></tr>'+
+    '</table>'+
+    '<div style="margin:16px 0">'+
+    (ws.length ? ws.map(w=>'<div class="warn"><code>'+esc(w)+'</code><span>'+(WHY[w]||"")+'</span></div>').join("")
+               : '<div class="hint">No warnings raised for this image.</div>')+'</div>'+
+    '<h3 style="margin:24px 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:0.05em">Model benchmark (from 40-image validation set)</h3>'+
+    '<table>'+
+    '<tr><td class="mut">Pixel map accuracy (r)</td><td>'+fmt(cf.ndvi_map_r||0.6882)+'</td></tr>'+
+    '<tr><td class="mut">Zone accuracy (r)</td><td>'+fmt(cf.stress_r_zone||0.4770)+'</td></tr>'+
+    '<tr><td class="mut">Basis</td><td>Paired NIR ground truth, n=40, leave-one-date-out</td></tr>'+
+    '</table>'+
+    '<div class="hint">Published reference performance across the 40-image validation trials. Describes overall model capability, not an image-specific measurement.</div>';
+
+  document.querySelectorAll(".pane img").forEach(im=>{
+    im.onclick = () => window.open(im.src, "_blank");
+  });
+
+  $("#json").textContent = JSON.stringify(
+    Object.fromEntries(Object.entries(j).filter(e=>e[0]!=="panels")), null, 2);
+  $("#out").style.display="block";
+  $("#out").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+$("#printBtn").onclick = () => window.print();
+</script>
+</body>
+</html>

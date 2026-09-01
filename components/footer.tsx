@@ -79,6 +79,22 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+
+          <div>
+            <h5 className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#1a1a1a] mb-3">Legal</h5>
+            <ul className="space-y-2 font-mono text-[11px] text-[#6f6d66] uppercase tracking-wider">
+              <li>
+                <a href="/privacy" className="hover:text-[#1B6B3A] transition-colors">
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a href="/terms" className="hover:text-[#1B6B3A] transition-colors">
+                  Terms of Service
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
